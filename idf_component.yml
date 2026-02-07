@@ -1,0 +1,4 @@
+description: "Tab5 custom keyboard LVGL object component"
+version: "0.1.0"
+dependencies:
+  lvgl/lvgl: "*"
