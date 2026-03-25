@@ -34,6 +34,7 @@ public:
 
 protected:
     lv_obj_t* m_key_buttons[NORMAL_KEY_COUNT];
+    lv_obj_t* m_key_icons[NORMAL_KEY_COUNT];
     bool m_key_disabled[NORMAL_KEY_COUNT];
     normal_case_mode_t m_case_mode;
     normal_keyboard_confirm_callback_t m_confirm_callback;

@@ -20,6 +20,48 @@ static constexpr lv_opa_t kDisabledTextOpacity = LV_OPA_70;
 static constexpr uint32_t kDisabledBorderColor = 0x7A7A7A;
 static constexpr uint32_t kNormalBorderColor = 0x111111;
 static constexpr uint32_t kShiftActiveBorderColor = 0xFFF2CC;
+static constexpr lv_coord_t kSpaceIconWidth = 34;
+static constexpr lv_coord_t kSpaceIconHeight = 8;
+static constexpr lv_coord_t kSpaceIconStrokeWidth = 2;
+static constexpr lv_coord_t kSpaceIconOffsetY = 3;
+static constexpr uint16_t kSpaceIconPointCount = 4;
+
+static const lv_point_precise_t kSpaceIconPoints[kSpaceIconPointCount] = {
+    {0, 0},
+    {0, 8},
+    {34, 8},
+    {34, 0},
+};
+
+static constexpr lv_coord_t kBsIconWidth = 26;
+static constexpr lv_coord_t kBsIconHeight = 16;
+static constexpr lv_coord_t kBsIconStrokeWidth = 2;
+static constexpr lv_coord_t kBsIconOffsetY = 0;
+static constexpr uint16_t kBsIconPointCount = 6;
+
+static const lv_point_precise_t kBsIconPoints[kBsIconPointCount] = {
+    {8, 0},
+    {0, 8},
+    {8, 16},
+    {26, 16},
+    {26, 0},
+    {8, 0},
+};
+
+static constexpr lv_coord_t kOkIconWidth = 24;
+static constexpr lv_coord_t kOkIconHeight = 20;
+static constexpr lv_coord_t kOkIconStrokeWidth = 2;
+static constexpr lv_coord_t kOkIconOffsetY = 0;
+static constexpr uint16_t kOkIconPointCount = 6;
+
+static const lv_point_precise_t kOkIconPoints[kOkIconPointCount] = {
+    {24, 0},
+    {24, 12},
+    {4, 12},
+    {12, 4},
+    {4, 12},
+    {12, 20},
+};
 
 static uint32_t get_key_bg_color(const normal_key_t* key, normal_case_mode_t case_mode)
 {
@@ -30,7 +72,7 @@ static uint32_t get_key_bg_color(const normal_key_t* key, normal_case_mode_t cas
         case NORMAL_KEY_TYPE_BACKSPACE:
             return NORMAL_KB_COLOR_BG_BLACK;
         case NORMAL_KEY_TYPE_SPACE:
-            return NORMAL_KB_COLOR_BG_SPACE;
+            return NORMAL_KB_COLOR_BG_NORMAL;
         case NORMAL_KEY_TYPE_CONFIRM:
             return NORMAL_KB_COLOR_BG_BLACK;
         case NORMAL_KEY_TYPE_CHAR:
@@ -75,6 +117,7 @@ NormalKeyboard::NormalKeyboard()
       m_backspace_repeat_active(false)
 {
     memset(m_key_buttons, 0, sizeof(m_key_buttons));
+    memset(m_key_icons, 0, sizeof(m_key_icons));
     memset(m_key_disabled, 0, sizeof(m_key_disabled));
 }
 
@@ -132,6 +175,12 @@ void NormalKeyboard::updateKeyUiState(uint16_t key_id)
         text = key->label_lower ? key->label_lower : "";
     }
 
+    if (key->type == NORMAL_KEY_TYPE_SPACE || 
+        key->type == NORMAL_KEY_TYPE_BACKSPACE || 
+        key->type == NORMAL_KEY_TYPE_CONFIRM) {
+        text = "";
+    }
+
     if (label) {
         lv_opa_t text_opa = m_key_disabled[key_id] ? kDisabledTextOpacity : static_cast<lv_opa_t>(LV_OPA_COVER);
         lv_label_set_text(label, text);
@@ -140,6 +189,16 @@ void NormalKeyboard::updateKeyUiState(uint16_t key_id)
                                                                         : get_key_text_color(key)),
                                     0);
         lv_obj_set_style_text_opa(label, text_opa, 0);
+    }
+
+    lv_obj_t* icon = m_key_icons[key_id];
+    if (icon) {
+        lv_opa_t icon_opa = m_key_disabled[key_id] ? kDisabledTextOpacity : static_cast<lv_opa_t>(LV_OPA_COVER);
+        lv_obj_set_style_line_color(icon,
+                                    lv_color_hex(m_key_disabled[key_id] ? NORMAL_KB_COLOR_TXT_DISABLED
+                                                                        : get_key_text_color(key)),
+                                    0);
+        lv_obj_set_style_line_opa(icon, icon_opa, 0);
     }
 
     lv_opa_t bg_opa = m_key_disabled[key_id] ? kDisabledBgOpacity : static_cast<lv_opa_t>(LV_OPA_COVER);
@@ -379,6 +438,36 @@ lv_obj_t* NormalKeyboard::create(lv_obj_t* parent)
         lv_obj_set_style_text_opa(label, LV_OPA_COVER, 0);
         lv_obj_set_style_text_font(label, &lv_font_montserrat_24, 0);
         lv_obj_center(label);
+
+        if (key->type == NORMAL_KEY_TYPE_SPACE) {
+            lv_obj_t* icon = lv_line_create(btn);
+            lv_line_set_points(icon, kSpaceIconPoints, kSpaceIconPointCount);
+            lv_obj_set_size(icon, kSpaceIconWidth, kSpaceIconHeight);
+            lv_obj_set_style_line_width(icon, kSpaceIconStrokeWidth, 0);
+            lv_obj_set_style_line_color(icon, lv_color_hex(get_key_text_color(key)), 0);
+            lv_obj_set_style_line_rounded(icon, false, 0);
+            lv_obj_center(icon);
+            lv_obj_set_y(icon, kSpaceIconOffsetY);
+            m_key_icons[i] = icon;
+        } else if (key->type == NORMAL_KEY_TYPE_BACKSPACE) {
+            lv_obj_t* icon = lv_line_create(btn);
+            lv_line_set_points(icon, kBsIconPoints, kBsIconPointCount);
+            lv_obj_set_size(icon, kBsIconWidth, kBsIconHeight);
+            lv_obj_set_style_line_width(icon, kBsIconStrokeWidth, 0);
+            lv_obj_set_style_line_color(icon, lv_color_hex(get_key_text_color(key)), 0);
+            lv_obj_set_style_line_rounded(icon, true, 0);
+            lv_obj_center(icon);
+            m_key_icons[i] = icon;
+        } else if (key->type == NORMAL_KEY_TYPE_CONFIRM) {
+            lv_obj_t* icon = lv_line_create(btn);
+            lv_line_set_points(icon, kOkIconPoints, kOkIconPointCount);
+            lv_obj_set_size(icon, kOkIconWidth, kOkIconHeight);
+            lv_obj_set_style_line_width(icon, kOkIconStrokeWidth, 0);
+            lv_obj_set_style_line_color(icon, lv_color_hex(get_key_text_color(key)), 0);
+            lv_obj_set_style_line_rounded(icon, true, 0);
+            lv_obj_center(icon);
+            m_key_icons[i] = icon;
+        }
 
         lv_obj_add_event_cb(btn, eventHandlerStatic, LV_EVENT_PRESSED, nullptr);
         lv_obj_add_event_cb(btn, eventHandlerStatic, LV_EVENT_CLICKED, nullptr);
